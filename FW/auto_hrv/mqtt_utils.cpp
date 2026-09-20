@@ -1,3 +1,4 @@
+
 #include "mqtt_utils.hpp"
 #include "common.h"
 #include "credentials.hpp"
@@ -5,7 +6,6 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define DEVICE_NAME   "ROOM_1"
 #define TASK_PERIOD   (1u)
 #define RETRY_PERIOD  (5000u/TASK_PERIOD)
 
@@ -18,7 +18,7 @@ const char* broker = MQTT_URL;
 IPAddress broker(MQTT_IP_1,MQTT_IP_2,MQTT_IP_3,MQTT_IP_4); // IP address of your MQTT broker
 #endif
 
-
+String Topic_main = DEVICE_NAME;
 void callback(char* topic, byte* payload, unsigned int length);
 bool connect(void);
 
@@ -102,5 +102,9 @@ void Mqtt_MainFunction(void){
     client.publish("outTopic", msg);
   }
 
+void Mqtt_PublishData(const char* topic, float payload){
+  Topic_main += topic
+  client.publish(topic, msg);
+}
 
 }

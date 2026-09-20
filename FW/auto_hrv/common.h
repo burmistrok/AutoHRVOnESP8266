@@ -7,6 +7,7 @@ extern "C" {
 
 
 #define USE_DEBUG
+#define DEVICE_NAME "ROOM_1"
 
 #ifdef __cplusplus
 }

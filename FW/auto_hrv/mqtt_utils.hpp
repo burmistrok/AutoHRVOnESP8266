@@ -8,6 +8,7 @@ extern "C" {
 
 void Mqtt_Init(void);
 void Mqtt_MainFunction(void);
+void Mqtt_PublishData(const char* topic, float payload);
 
 #ifdef __cplusplus
 }

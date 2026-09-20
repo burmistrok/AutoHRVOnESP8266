@@ -3,8 +3,11 @@
 #include "led_utils.hpp"
 #include "wifi_utils.hpp"
 #include "mqtt_utils.hpp"
+#include "ota.hpp"
 #include <Arduino.h>
-
+#ifdef USE_DEBUG
+#include <LittleFS.h>
+#endif
 
 #define SCHM_1MS_TASK_PERIOD 1
 #define SCHM_10MS_TASK_PERIOD 10
@@ -51,6 +54,7 @@ void SchM_10sTask(void) {
     // Place your 10s periodic tasks here.
     
     WiFi_MainFunction();
+    Ota_MainFunction();
 }
 
 void SchM_10msTask(void) {
@@ -73,31 +77,43 @@ void SchM_Init(void){
     last_10s_task_time = 0;
 #ifdef USE_DEBUG
     Serial.begin(115200);
-
+    Serial.printf("\r\n");
     Serial.printf("Chip ID: %08X\n", ESP.getChipId());
     Serial.printf("CPU: %u MHz\n", ESP.getCpuFreqMHz());
     Serial.printf("Flash: %u bytes\n", ESP.getFlashChipRealSize());
+    
+    if (LittleFS.begin()) {
+        FSInfo fs_info;
+        LittleFS.info(fs_info);
+
+        Serial.printf("Total FS Space: %u bytes\n", fs_info.totalBytes);
+        Serial.printf("Used FS Space:  %u bytes\n", fs_info.usedBytes);
+        Serial.printf("Free FS Space:  %u bytes\n", fs_info.totalBytes - fs_info.usedBytes);
+    } else {
+        Serial.println("LittleFS mount failed or FS is not formatted.");
+    }
 #endif
     Led_Init();
     WiFi_Init();
     Mqtt_Init();
+    Ota_Init();
 }
 
 
 void SchM_MainFunction(unsigned long now){
 
     if (now - last_10s_task_time >= SCHM_10S_TASK_PERIOD) {
-        last_10s_task_time = now;
+        last_10s_task_time = last_10s_task_time + SCHM_10S_TASK_PERIOD;
         SchM_10sTask();
 #ifdef USE_DEBUG
         Serial.print("Now: ");
         Serial.println(now);
 #endif
     } else if (now - last_1s_task_time >= SCHM_1S_TASK_PERIOD) {
-        last_1s_task_time = now;
+        last_1s_task_time = last_1s_task_time + SCHM_1S_TASK_PERIOD;
         SchM_1sTask();
     } else if (now - last_1ms_task_time >= SCHM_1MS_TASK_PERIOD) {
-        last_1ms_task_time = now;
+        last_1ms_task_time = last_1ms_task_time + last_1ms_task_time;
         SchM_1msTask();
     }
     SchM_IdleTask();
